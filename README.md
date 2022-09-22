@@ -65,5 +65,6 @@ This command show information about the current linux environment.
 
 ![uname](https://user-images.githubusercontent.com/74077388/187058317-31c6b0ab-34e6-46ce-9a4d-22b1f723027e.png)
 
-#Month 2 Week 4
+*Month 2 Week 4*
+
 Completed the module on git and it commands. Pushed results of exercise 6  to my remote repo.
