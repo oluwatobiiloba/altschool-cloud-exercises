@@ -64,3 +64,9 @@ This command shows all active processes
 This command show information about the current linux environment.
 
 ![uname](https://user-images.githubusercontent.com/74077388/187058317-31c6b0ab-34e6-46ce-9a4d-22b1f723027e.png)
+
+*Altschool learning cloud track*
+Exercise 7 (Bash Scripting)
+
+
+Bash Scripting with crontab scheduled run and email notification
