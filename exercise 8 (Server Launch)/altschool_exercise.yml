@@ -1,0 +1,39 @@
+---
+- name: Altschool Exercise(Server setup)
+  hosts: all
+  remote_user: root
+  become: true
+  tasks:
+  - name: Install Apache Server
+    apt:
+      name: apache2
+      state: present
+
+  - name: Repo PHP 
+    apt_repository:
+      repo="ppa:ondrej/php"
+   
+  - name: Updating the repo
+    apt: update_cache=yes
+
+  - name: Install PHP
+    apt:
+      name: php8.1
+      state: present
+  - name: Start Apache
+    service:
+      name: apache2
+      enabled: yes
+      state: started
+  
+  - name: Set Timezone to Africa/Lagos
+    command: timedatectl set-timezone Africa/Lagos
+  - name: Get timezone status
+    command: timedatectl
+
+  - name: copy file from localhost to the remote server
+    copy:
+      src: /root/index.php
+      dest: /var/www/html/index.php
+
+  
