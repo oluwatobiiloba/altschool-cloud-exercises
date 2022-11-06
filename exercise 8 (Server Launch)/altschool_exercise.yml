@@ -20,6 +20,7 @@
     apt:
       name: php8.1
       state: present
+      
   - name: Start Apache
     service:
       name: apache2
