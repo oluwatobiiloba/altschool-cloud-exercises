@@ -14,7 +14,7 @@ Ansible playbook to setup ubuntu server with a laravel landing page.
 -Install Composer Dependencies
 -Database Migrations
 -Configure Apache
--Install SSL security
+-Install and configure SSL security 
 
 # altschool-cloud-exercises
 
