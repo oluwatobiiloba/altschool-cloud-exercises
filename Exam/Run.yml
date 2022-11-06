@@ -1,0 +1,220 @@
+---
+- name: Altschool Exam(Server setup)
+  hosts: all
+  remote_user: root
+  become: true
+  vars:
+    database_user: ubuntu
+    database_password: laravel
+  tasks:
+
+  #Update server software
+  - name: Update all packages
+    command: apt update
+
+  #Install apache2  
+  - name: Install Apache Server
+    apt:
+      name: apache2
+      state: present
+
+#Install php
+  - name: Repo PHP
+    apt_repository:
+      repo="ppa:ondrej/php"
+
+  - name: Updating the repo
+    apt: update_cache=yes
+
+  - name: Install PHP
+    apt:
+      name: php8.1
+      state: present
+
+  - name: Installing php extensions
+    package:
+        name: "{{item}}"
+        state: present
+        update_cache: yes
+    loop:
+        - openssl
+        - php-common
+        - php-curl
+        - php-json
+        - php-mbstring
+        - php-mysql
+        - php-xml
+        - php-zip
+    become: yes
+
+#install Psql
+  - name: Install PSQL
+    script: /home/ubuntu/postgres.sh
+
+#instalL mysql
+  - name: Installing Mysql and dependencies
+    package:
+       name: "{{item}}"
+       state: present
+       update_cache: yes
+    loop:
+       - mysql-server
+       - mysql-client
+       - python3-mysqldb
+       - libmysqlclient-dev
+    become: yes
+
+  - name: Creating mysql user
+    mysql_user:
+      name: "{{database_user}}"
+      password: "{{database_password}}"
+      priv: '*.*:ALL'
+      host: '%'
+      state: present
+
+  - name: Create database
+    mysql_db:
+      name: laravel_db
+      state: present
+
+  - name: Restart mysql
+    command: systemctl restart mysql
+
+
+  - name: Restart mysql
+    command: systemctl restart mysql
+
+  - name: Download php-composer
+    get_url:
+        url: https://getcomposer.org/installer
+        dest: /tmp/installer
+
+  - name: install composer
+    script: /home/ubuntu/composer_install.sh
+
+  - name: rename composer.phar to composer
+    shell: mv /usr/local/bin/composer.phar /usr/local/bin/composer
+    args:
+       creates: /usr/local/bin/composer
+
+  - name: make composer executable
+    file:
+       path: /usr/local/bin/composer
+       mode: a+x
+       state: file
+
+#git is preconfigured
+  - name: Clone Laravel Project
+    git:
+      dest: /home/ubuntu
+      repo: "https://github.com/f1amy/laravel-realworld-example-app.git"
+      update: no
+
+  - name: rename the project
+    command: mv laravel-realworld-example-app Laravel_app
+
+  - name: move Laravel_app to html directory
+    command: mv Laravel_app /var/www/html/
+
+  - name: Assign ownership
+    command: chown -R www-data:www-data /var/www/html/Laravel_app
+
+  - name: Assign permissions
+    command: chmod -R 775 /var/www/html/Laravel_app/storage
+
+  - name: copy .env from localhost to server
+    copy:
+      src: .env
+      dest: /var/www/html/Laravel_app/.env
+
+#DB Migrations
+
+  - name: Delete predefined .env
+    file: name=/var/www/html/Laravel_app/.env.example state=absent
+
+  - name: Composer update
+    script: /home/ubuntu/composer_update.sh
+    args:
+         chdir: /var/www/html/Laravel_app
+
+  - name: Composer install
+    script: /home/ubuntu/ansible/composer.sh
+    args:
+         chdir: /var/www/html/Laravel_app
+
+  - name: Install composer deps
+    composer:
+     command: install
+     working_dir: /var/www/html/Laravel_app
+     prefer_dist: true
+     optimize_autoloader: true
+     no_dev: true
+     no_scripts: true
+
+  - name: php artisan
+    command: php artisan key:generate
+    args:
+      chdir: /var/www/html/Laravel_app/
+
+  - name: artisan migrate
+    command: php artisan migrate
+    args:
+      chdir: /var/www/html/Laravel_app/
+
+    # Edit the web.php file
+
+  - name: delete default web.php
+    command: rm /var/www/html/Laravel_app/routes/web.php
+
+  - name: copy and replace web.php
+    copy:
+      src: /home/ubuntu/web.php
+      dest: /var/www/html/Laravel_app/routes/web.php
+
+    # create an apache config file
+
+  - name: replace config file
+    copy:
+      src: /home/ubuntu/laravel.conf
+      dest: /etc/apache2/sites-available/laravel.conf
+
+  - name: disable default apache config
+    command: a2dissite 000-default.conf
+
+  - name: enable new config file
+    command: a2ensite laravel.conf
+
+  - name: modify apache
+    command: a2enmod rewrite
+
+  - name: reload apache
+    command: systemctl reload apache2
+
+  - name: Set Timezone to Africa/Lagos
+    command: timedatectl set-timezone Africa/Lagos
+
+  - name: Get timezone status
+    command: timedatectl
+
+# Installing ssl encryption for Host name
+
+  - name: update server
+    command: apt update
+
+  - name: install snap
+    command: apt install snapd -y
+
+  - name: install core
+    command: snap install core
+
+  - name: refresh
+    command: snap refresh core
+
+  - name: install certbot
+    command: snap install --classic certbot
+
+  - name: configure certbot
+    command: ln -s /snap/bin/certbot /usr/bin/certbot
+
+  - name: encrypt the server
+    command: certbot --apache --agree-tos --redirect -m admin@ooluwatobiiloba.me -d oluwatobiiloba.me -d www.oluwatobiiloba.me -y
