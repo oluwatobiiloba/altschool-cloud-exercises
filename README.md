@@ -5,16 +5,27 @@ Ansible playbook to setup ubuntu server with a laravel landing page.
 ## What Run playbook does
 
 -Install Apache2
+
 -Install PHP
+
 -Install Mysql
+
 -Instal PostgresSql
+
 -Setup Sql User and Database
+
 -Install Composer
+
 -Clone Laravel sample page
+
 -Install Composer Dependencies
+
 -Database Migrations
+
 -Configure Apache
--Install and configure SSL security 
+
+-Install and configure SSL security
+
 
 # altschool-cloud-exercises
 
